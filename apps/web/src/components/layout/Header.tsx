@@ -1,9 +1,12 @@
 import { Link, NavLink } from "react-router-dom";
-import { Moon, Sun, Shield } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { UserMenu } from "@/components/auth/UserMenu";
+import { OnboardingGuide } from "@/components/onboarding/OnboardingGuide";
 import { cn } from "@/lib/utils";
+import logoDark from "@/assets/dark.png";
+import logoLight from "@/assets/light.png";
 
 export function Header() {
   const t = useT();
@@ -20,20 +23,19 @@ export function Header() {
           { to: "/profile", label: t("nav.profile") },
         ]
       : []),
-    { to: "/admin", label: t("nav.admin") },
+    ...(role === "admin" ? [{ to: "/admin", label: t("nav.admin") }] : []),
   ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="container flex h-16 items-center justify-between gap-4">
-        <Link
-          to="/"
-          className="flex items-center gap-2 font-[650] text-foreground"
-        >
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
-            <Shield className="h-4 w-4" aria-hidden />
-          </span>
-          <span className="text-lg tracking-tight">AllWay</span>
+        {/* Wordmark — Fraunces serif with chili-italic "Guard" (moodboard §7) */}
+        <Link to="/" className="flex items-center gap-2.5">
+          <img
+            src={theme === "dark" ? logoDark : logoLight}
+            alt="AllWay Logo"
+            className="h-12 w-auto object-contain"
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
@@ -42,9 +44,10 @@ export function Header() {
               key={item.to}
               to={item.to}
               end={item.end}
+              data-tour={item.to === "/explore" ? "nav-explore" : item.to === "/itinerary" ? "nav-itinerary" : undefined}
               className={({ isActive }) =>
                 cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary-soft text-primary"
                     : "text-muted-foreground hover:bg-surface-soft hover:text-foreground",
@@ -70,7 +73,7 @@ export function Header() {
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-semibold uppercase transition-colors",
                   language === l
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-chili text-white"
                     : "text-muted-foreground hover:text-foreground",
                 )}
                 aria-pressed={language === l}
@@ -82,6 +85,9 @@ export function Header() {
 
           {/* User menu */}
           <UserMenu />
+
+          {/* Onboarding guide */}
+          <OnboardingGuide />
 
           {/* Theme toggle */}
           <button
@@ -114,7 +120,7 @@ export function Header() {
               cn(
                 "whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
                 isActive
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-chili text-white"
                   : "bg-surface-soft text-muted-foreground",
               )
             }

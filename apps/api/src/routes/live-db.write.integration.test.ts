@@ -7,7 +7,7 @@ describe("v1 live DB write integration", () => {
   const app = new Elysia().use(v1Routes);
 
   const stamp = `itest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const userEmail = `${stamp}@tripguard.test`;
+  const userEmail = `${stamp}@AllWay.test`;
 
   let userId: string | null = null;
   let businessId: string | null = null;
@@ -18,14 +18,18 @@ describe("v1 live DB write integration", () => {
 
   beforeAll(async () => {
     if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL is not set for live DB write integration test");
+      throw new Error(
+        "DATABASE_URL is not set for live DB write integration test",
+      );
     }
 
     const destination = await prisma.destination.findFirst({
       select: { id: true },
     });
     if (!destination) {
-      throw new Error("No destination available in DB for write integration test");
+      throw new Error(
+        "No destination available in DB for write integration test",
+      );
     }
     destinationId = destination.id;
 
@@ -80,11 +84,17 @@ describe("v1 live DB write integration", () => {
   });
 
   it("GET /api/v1/tourist/reports returns current user's report history", async () => {
-    const res = await app.handle(new Request(`http://localhost/api/v1/tourist/reports?userId=${userId}&limit=10`));
+    const res = await app.handle(
+      new Request(
+        `http://localhost/api/v1/tourist/reports?userId=${userId}&limit=10`,
+      ),
+    );
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(Array.isArray(json.reports)).toBe(true);
-    expect(json.reports.some((report: any) => report.id === reportId)).toBe(true);
+    expect(json.reports.some((report: any) => report.id === reportId)).toBe(
+      true,
+    );
   });
 
   it("PATCH /api/v1/tourist/preferences updates traveler preferences", async () => {
@@ -109,7 +119,11 @@ describe("v1 live DB write integration", () => {
     expect(patched.consentGiven).toBe(true);
     expect(patched.preferences.budget).toBe("mid");
 
-    const getRes = await app.handle(new Request(`http://localhost/api/v1/tourist/preferences?userId=${userId}`));
+    const getRes = await app.handle(
+      new Request(
+        `http://localhost/api/v1/tourist/preferences?userId=${userId}`,
+      ),
+    );
     expect(getRes.status).toBe(200);
     const loaded = (await getRes.json()) as any;
     expect(loaded.preferences.crowdTolerance).toBe("low");
@@ -132,14 +146,22 @@ describe("v1 live DB write integration", () => {
     itineraryId = created.itinerary.id;
     expect(created.itinerary.userId).toBe(userId);
 
-    const listRes = await app.handle(new Request(`http://localhost/api/v1/tourist/itineraries?userId=${userId}&limit=10`));
+    const listRes = await app.handle(
+      new Request(
+        `http://localhost/api/v1/tourist/itineraries?userId=${userId}&limit=10`,
+      ),
+    );
     expect(listRes.status).toBe(200);
     const listed = (await listRes.json()) as any;
     expect(Array.isArray(listed.itineraries)).toBe(true);
-    expect(listed.itineraries.some((it: any) => it.id === itineraryId)).toBe(true);
+    expect(listed.itineraries.some((it: any) => it.id === itineraryId)).toBe(
+      true,
+    );
 
     const getRes = await app.handle(
-      new Request(`http://localhost/api/v1/tourist/itineraries/${itineraryId}?userId=${userId}`),
+      new Request(
+        `http://localhost/api/v1/tourist/itineraries/${itineraryId}?userId=${userId}`,
+      ),
     );
     expect(getRes.status).toBe(200);
     const fetched = (await getRes.json()) as any;
@@ -147,24 +169,30 @@ describe("v1 live DB write integration", () => {
     expect(fetched.itinerary.items[0].destinationId).toBe(destinationId);
 
     const patchRes = await app.handle(
-      new Request(`http://localhost/api/v1/tourist/itineraries/${itineraryId}`, {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          title: `Updated save places ${stamp}`,
-          items: [{ day: 1, destinationId, note: "updated stop" }],
-        }),
-      }),
+      new Request(
+        `http://localhost/api/v1/tourist/itineraries/${itineraryId}`,
+        {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            title: `Updated save places ${stamp}`,
+            items: [{ day: 1, destinationId, note: "updated stop" }],
+          }),
+        },
+      ),
     );
     expect(patchRes.status).toBe(200);
     const patched = (await patchRes.json()) as any;
     expect(patched.itinerary.title).toContain("Updated");
 
     const deleteRes = await app.handle(
-      new Request(`http://localhost/api/v1/tourist/itineraries/${itineraryId}?userId=${userId}`, {
-        method: "DELETE",
-      }),
+      new Request(
+        `http://localhost/api/v1/tourist/itineraries/${itineraryId}?userId=${userId}`,
+        {
+          method: "DELETE",
+        },
+      ),
     );
     expect(deleteRes.status).toBe(200);
     const deleted = (await deleteRes.json()) as any;

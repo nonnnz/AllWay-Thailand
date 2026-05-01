@@ -5,148 +5,184 @@
 @tailwind components;
 @tailwind utilities;
 
-/* AllWay Design System — warm, trust-first travel UI.
+/* AllWay Vibrant Design System — Thai food-and-textile palette.
+   Sourced from the kitchen, not the corporate deck.
    All tokens are HSL. Never use raw colors in components. */
 
 @layer base {
   :root {
-    /* Warm neutrals */
-    --background: 38 50% 95%; /* #F8F3EA warm sand */
-    --foreground: 210 18% 14%; /* #1D252C on-surface */
+    /* ── Warm base tones (coconut / sesame) ── */
+    --background: 40 71% 93%; /* #FAF3E2  coconut — jasmine rice */
+    --foreground: 25 24% 10%; /* #1F1A14  black sesame — charred wok */
 
-    --surface: 0 0% 100%;
-    --surface-soft: 40 38% 91%; /* #F2EBDD */
-    --surface-muted: 38 33% 86%; /* #E9DFCF */
+    --surface: 43 100% 98%; /* #FFFCF5  paper */
+    --surface-soft: 38 47% 88%; /* #F2E9D1  coconut-2 */
+    --surface-muted: 40 30% 83%; /* #E5DCC5  line / warm gray */
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 18% 14%;
+    --card: 43 100% 98%; /* #FFFCF5  paper */
+    --card-foreground: 25 24% 10%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 18% 14%;
+    --popover: 43 100% 98%;
+    --popover-foreground: 25 24% 10%;
 
-    /* Trust anchor — Deep Travel Blue */
-    --primary: 213 52% 25%; /* #1E3A5F */
-    --primary-hover: 214 53% 20%;
-    --primary-soft: 211 50% 94%; /* #E8F0F8 */
-    --primary-foreground: 0 0% 100%;
+    /* ── Primary: Mango — saffron robe, mango sticky rice ── */
+    --primary: 33 87% 59%; /* #F2A03D  mango */
+    --primary-hover: 33 87% 52%;
+    --primary-soft: 35 92% 86%; /* #FCE4BD  mango-soft */
+    --primary-foreground: 25 24% 10%;
 
-    --secondary: 40 38% 91%;
-    --secondary-foreground: 213 52% 25%;
+    --secondary: 38 47% 88%; /* coconut-2 */
+    --secondary-foreground: 25 24% 10%;
 
-    /* Terracotta — local warmth */
-    --tertiary: 21 50% 47%; /* #B66A3C */
-    --tertiary-foreground: 0 0% 100%;
+    /* ── Chili — sriracha, terracotta tile, songthaew red ── */
+    --chili: 9 73% 55%; /* #E2553B */
+    --chili-soft: 10 90% 91%; /* #FBD9D1 */
 
-    --muted: 40 38% 91%;
-    --muted-foreground: 210 11% 45%; /* #65727D */
+    /* ── Jade — naga scale, jade buddha, garden pond ── */
+    --jade: 173 59% 30%; /* #1F7A6E */
+    --jade-soft: 166 38% 85%; /* #C8E6E0 */
 
-    --accent: 38 33% 86%;
-    --accent-foreground: 213 52% 25%;
+    /* ── Indigo — mor hom cotton, twilight Bangkok sky ── */
+    --indigo: 226 40% 40%; /* #3D4F8E */
+    --indigo-soft: 226 46% 89%; /* #D6DDF1 */
 
-    /* Trust — green */
-    --trust: 144 33% 37%; /* #3F7D58 */
-    --trust-soft: 144 33% 92%; /* #E5F1EA */
-    --trust-foreground: 0 0% 100%;
+    /* ── Lotus — lotus petal, dusk neon Yaowarat ── */
+    --lotus: 296 29% 58%; /* #B26FB8 */
+    --lotus-soft: 292 28% 89%; /* #ECDAEE */
 
-    /* Warning — amber */
-    --warning: 39 68% 43%; /* #B98524 */
-    --warning-soft: 44 100% 92%; /* #FFF3D8 */
-    --warning-foreground: 0 0% 100%;
+    /* ── Lemongrass — fresh herb, banana leaf, lime zest ── */
+    --lemongrass: 82 52% 47%; /* #94B83A */
+    --lemongrass-soft: 82 52% 84%; /* #E0EBC2 */
 
-    /* Danger — soft red */
-    --destructive: 6 47% 49%; /* #B85042 */
-    --destructive-soft: 8 71% 94%; /* #FBE7E4 */
-    --destructive-foreground: 0 0% 100%;
+    /* ── Tertiary (Terracotta — local warmth, maps to chili) ── */
+    --tertiary: 9 73% 55%;
+    --tertiary-foreground: 43 100% 98%;
 
-    /* Local value — Thai silk gold */
-    --local-value: 39 58% 51%; /* #C9973A */
-    --local-value-soft: 43 79% 91%; /* #FAF0D7 */
-    --local-value-foreground: 0 0% 100%;
+    --muted: 38 47% 88%;
+    --muted-foreground: 27 14% 30%; /* #4A3F33  sesame-2 */
+
+    --accent: 40 30% 83%;
+    --accent-foreground: 25 24% 10%;
+
+    /* ── Trust — mapped to Jade ── */
+    --trust: 173 59% 30%; /* #1F7A6E */
+    --trust-soft: 166 38% 85%; /* #C8E6E0 */
+    --trust-foreground: 43 100% 98%;
+
+    /* ── Warning — mango-derived amber ── */
+    --warning: 33 87% 50%;
+    --warning-soft: 35 92% 86%;
+    --warning-foreground: 25 24% 10%;
+
+    /* ── Danger — chili ── */
+    --destructive: 9 73% 55%;
+    --destructive-soft: 10 90% 91%;
+    --destructive-foreground: 43 100% 98%;
+
+    /* ── Local value — mango/gold ── */
+    --local-value: 33 87% 59%;
+    --local-value-soft: 35 92% 86%;
+    --local-value-foreground: 25 24% 10%;
 
     /* Map */
     --map-water: 199 38% 89%;
-    --map-land: 38 33% 88%;
-    --map-route: 213 52% 25%;
+    --map-land: 40 30% 88%;
+    --map-route: 173 59% 30%;
 
-    --border: 36 27% 79%; /* #D8CDBD */
-    --input: 36 27% 79%;
-    --ring: 213 52% 25%;
+    --border: 40 26% 82%; /* #E5DCC5  warm line */
+    --input: 40 26% 82%;
+    --ring: 33 87% 59%;
 
-    --radius: 0.75rem; /* 12px buttons; cards use rounded-card 18px */
+    --radius: 0.875rem; /* 14px — moodboard --radius */
 
-    --sidebar-background: 38 50% 95%;
-    --sidebar-foreground: 210 18% 14%;
-    --sidebar-primary: 213 52% 25%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 38% 91%;
-    --sidebar-accent-foreground: 213 52% 25%;
-    --sidebar-border: 36 27% 79%;
-    --sidebar-ring: 213 52% 25%;
+    --sidebar-background: 40 71% 93%;
+    --sidebar-foreground: 25 24% 10%;
+    --sidebar-primary: 33 87% 59%;
+    --sidebar-primary-foreground: 25 24% 10%;
+    --sidebar-accent: 38 47% 88%;
+    --sidebar-accent-foreground: 25 24% 10%;
+    --sidebar-border: 40 26% 82%;
+    --sidebar-ring: 33 87% 59%;
   }
 
   .dark {
-    --background: 210 33% 9%; /* #101820 */
-    --foreground: 38 35% 93%; /* #F4EFE7 */
+    --background: 25 30% 7%; /* deep sesame */
+    --foreground: 40 60% 92%; /* warm cream */
 
-    --surface: 210 30% 13%; /* #17212B */
-    --surface-soft: 210 25% 17%; /* #202C36 */
-    --surface-muted: 210 22% 22%;
+    --surface: 25 25% 11%;
+    --surface-soft: 25 20% 15%;
+    --surface-muted: 25 16% 20%;
 
-    --card: 210 30% 13%;
-    --card-foreground: 38 35% 93%;
+    --card: 25 25% 11%;
+    --card-foreground: 40 60% 92%;
 
-    --popover: 210 30% 13%;
-    --popover-foreground: 38 35% 93%;
+    --popover: 25 25% 11%;
+    --popover-foreground: 40 60% 92%;
 
-    --primary: 211 50% 70%;
-    --primary-hover: 211 50% 76%;
-    --primary-soft: 213 30% 22%;
-    --primary-foreground: 210 33% 9%;
+    --primary: 33 87% 62%;
+    --primary-hover: 33 87% 68%;
+    --primary-soft: 33 40% 18%;
+    --primary-foreground: 25 30% 7%;
 
-    --secondary: 210 25% 17%;
-    --secondary-foreground: 38 35% 93%;
+    --secondary: 25 20% 15%;
+    --secondary-foreground: 40 60% 92%;
 
-    --tertiary: 21 50% 60%;
-    --tertiary-foreground: 210 33% 9%;
+    --chili: 9 73% 62%;
+    --chili-soft: 9 40% 18%;
 
-    --muted: 210 25% 17%;
-    --muted-foreground: 210 13% 70%; /* #AAB6BE */
+    --jade: 173 50% 45%;
+    --jade-soft: 173 30% 16%;
 
-    --accent: 210 25% 17%;
-    --accent-foreground: 38 35% 93%;
+    --indigo: 226 40% 58%;
+    --indigo-soft: 226 25% 18%;
 
-    --trust: 144 33% 55%;
-    --trust-soft: 144 25% 20%;
-    --trust-foreground: 210 33% 9%;
+    --lotus: 296 30% 62%;
+    --lotus-soft: 296 20% 18%;
 
-    --warning: 39 68% 60%;
-    --warning-soft: 39 30% 22%;
-    --warning-foreground: 210 33% 9%;
+    --lemongrass: 82 45% 52%;
+    --lemongrass-soft: 82 25% 16%;
 
-    --destructive: 6 60% 62%;
-    --destructive-soft: 6 30% 22%;
-    --destructive-foreground: 210 33% 9%;
+    --tertiary: 9 73% 62%;
+    --tertiary-foreground: 25 30% 7%;
 
-    --local-value: 39 65% 60%;
-    --local-value-soft: 39 30% 22%;
-    --local-value-foreground: 210 33% 9%;
+    --muted: 25 20% 15%;
+    --muted-foreground: 27 14% 62%;
 
-    --map-water: 210 28% 18%;
-    --map-land: 210 25% 14%;
-    --map-route: 211 60% 70%;
+    --accent: 25 20% 15%;
+    --accent-foreground: 40 60% 92%;
 
-    --border: 210 20% 25%; /* #33414D */
-    --input: 210 20% 25%;
-    --ring: 211 50% 70%;
+    --trust: 173 50% 45%;
+    --trust-soft: 173 30% 16%;
+    --trust-foreground: 25 30% 7%;
 
-    --sidebar-background: 210 33% 9%;
-    --sidebar-foreground: 38 35% 93%;
-    --sidebar-primary: 211 50% 70%;
-    --sidebar-primary-foreground: 210 33% 9%;
-    --sidebar-accent: 210 25% 17%;
-    --sidebar-accent-foreground: 38 35% 93%;
-    --sidebar-border: 210 20% 25%;
-    --sidebar-ring: 211 50% 70%;
+    --warning: 33 80% 55%;
+    --warning-soft: 33 30% 18%;
+    --warning-foreground: 25 30% 7%;
+
+    --destructive: 9 65% 58%;
+    --destructive-soft: 9 30% 18%;
+    --destructive-foreground: 25 30% 7%;
+
+    --local-value: 33 80% 55%;
+    --local-value-soft: 33 30% 18%;
+    --local-value-foreground: 25 30% 7%;
+
+    --map-water: 210 28% 14%;
+    --map-land: 25 20% 12%;
+    --map-route: 173 50% 45%;
+
+    --border: 25 16% 22%;
+    --input: 25 16% 22%;
+    --ring: 33 87% 62%;
+
+    --sidebar-background: 25 30% 7%;
+    --sidebar-foreground: 40 60% 92%;
+    --sidebar-primary: 33 87% 62%;
+    --sidebar-primary-foreground: 25 30% 7%;
+    --sidebar-accent: 25 20% 15%;
+    --sidebar-accent-foreground: 40 60% 92%;
+    --sidebar-border: 25 16% 22%;
+    --sidebar-ring: 33 87% 62%;
   }
 }
 
@@ -156,7 +192,9 @@
   }
 
   html {
-    font-family: "Inter", "Noto Sans Thai", system-ui, sans-serif;
+    font-family:
+      "Inter", "IBM Plex Sans Thai Looped", "Noto Sans Thai", system-ui,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -164,7 +202,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    line-height: 1.6;
+    line-height: 1.55;
   }
 
   h1,
@@ -174,7 +212,14 @@
   h5,
   h6 {
     @apply tracking-tight;
-    line-height: 1.2;
+    line-height: 1.1;
+  }
+
+  /* Display headings use Fraunces serif */
+  h1,
+  h2 {
+    font-family: "Fraunces", Georgia, "Noto Serif Thai", serif;
+    letter-spacing: -0.015em;
   }
 
   /* Map containers should respect theme */
@@ -185,6 +230,7 @@
 }
 
 @layer components {
+  /* Grain surface — warm paper texture */
   .grain-surface {
     position: relative;
     background-color: hsl(var(--background));
@@ -196,22 +242,28 @@
     inset: 0;
     background-image:
       radial-gradient(
-        circle at 12% 0%,
-        hsl(var(--primary) / 0.12),
+        ellipse 600px 300px at 90% 0%,
+        hsl(var(--primary-soft) / 0.5),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 500px 400px at 0% 100%,
+        hsl(var(--lotus-soft) / 0.4),
         transparent 55%
       ),
       radial-gradient(
-        circle at 88% 100%,
-        hsl(var(--tertiary) / 0.08),
+        ellipse 400px 300px at 50% 100%,
+        hsl(var(--lemongrass-soft) / 0.3),
         transparent 50%
       ),
       url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    background-blend-mode: normal, normal, overlay;
+    background-blend-mode: normal, normal, normal, overlay;
     opacity: 0.04;
     pointer-events: none;
     z-index: -1;
   }
 
+  /* Card spotlight hover — warm mango glow */
   .card-spotlight {
     position: relative;
     isolation: isolate;
@@ -234,5 +286,70 @@
   }
   .card-spotlight:hover::before {
     opacity: 1;
+  }
+
+  /* Handwritten accent — Caveat font class */
+  .font-hand {
+    font-family: "Caveat", "Bradley Hand", cursive;
+  }
+
+  /* Editorial display serif class */
+  .font-serif-display {
+    font-family: "Fraunces", Georgia, "Noto Serif Thai", serif;
+  }
+
+  /* Thai body text class */
+  .font-thai {
+    font-family: "IBM Plex Sans Thai Looped", "Noto Sans Thai", sans-serif;
+  }
+
+  /* Moodboard tag/chip system */
+  .tag-chip {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full;
+  }
+  .tag-chip .dot {
+    @apply w-2 h-2 rounded-full;
+    background: currentColor;
+    opacity: 0.85;
+  }
+  .tag-mango {
+    background: hsl(var(--primary-soft));
+    color: #7a4a0a;
+  }
+  .tag-chili {
+    background: hsl(var(--chili-soft));
+    color: #7a2614;
+  }
+  .tag-jade {
+    background: hsl(var(--jade-soft));
+    color: #0e423b;
+  }
+  .tag-indigo {
+    background: hsl(var(--indigo-soft));
+    color: #1e2a57;
+  }
+  .tag-lotus {
+    background: hsl(var(--lotus-soft));
+    color: #5b2e60;
+  }
+  .tag-lemongrass {
+    background: hsl(var(--lemongrass-soft));
+    color: #4a6010;
+  }
+
+  /* Kicker pill (section label) */
+  .kicker {
+    @apply inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] px-3.5 py-2 rounded-full;
+    background: hsl(var(--chili-soft));
+    color: hsl(var(--chili));
+  }
+
+  /* Hide scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

@@ -1,10 +1,16 @@
 // apps/api/src/routes/chat.ts
 import { Elysia, t } from "elysia";
 import { chatWithGuard } from "../lib/claude";
+import { isMockMode } from "../lib/mock-data";
+import { mockChatReply } from "../lib/mock-chat";
 
 export const chatRoutes = new Elysia({ prefix: "/api/chat" }).post(
   "/",
   async ({ body }) => {
+    if (isMockMode()) {
+      const reply = mockChatReply(body.messages, body.context);
+      return { reply };
+    }
     const reply = await chatWithGuard(body.messages, body.context);
     return { reply };
   },

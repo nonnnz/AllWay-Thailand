@@ -1,7 +1,7 @@
 """
 apps/etl/neo4j_seeder.py
 
-Guide-aligned Neo4j seeder for TripGuard.
+Guide-aligned Neo4j seeder for AllWay.
 Primary model:
   (:Place)-[:DETOUR_TO|SIMILAR_TO|HAS_VIBE|IN_PROVINCE|BEST_IN_SEASON|NEAR_FACILITY]->(...)
 

@@ -5,6 +5,7 @@ import { PageShell } from '@/components/layout/PageShell';
 import { PlaceCard } from '@/components/place/PlaceCard';
 import { PlacesMap } from '@/components/map/PlacesMap';
 import { getPlaces, getProvinces, getFacilities, queryKeys } from '@/lib/api/client';
+import { useT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 const KINDS = [
@@ -20,17 +21,41 @@ export default function Explore() {
   const [provinceId, setProvinceId] = useState('');
   const [view, setView] = useState<'list' | 'map'>('list');
   const [sortBy, setSortBy] = useState<'relevance' | 'trust' | 'crowd'>('trust');
+  const [page, setPage] = useState(1);
+  const t = useT();
 
-  const params = useMemo(() => ({ kind: kind || undefined, provinceId: provinceId || undefined, sortBy }), [kind, provinceId, sortBy]);
+  const params = useMemo(() => ({ 
+    kind: kind || undefined, 
+    provinceId: provinceId || undefined, 
+    sortBy,
+    page,
+    limit: 6
+  }), [kind, provinceId, sortBy, page]);
+
   const places = useQuery({ queryKey: queryKeys.places(params), queryFn: () => getPlaces(params) });
   const provinces = useQuery({ queryKey: queryKeys.provinces, queryFn: getProvinces });
   const facilities = useQuery({ queryKey: queryKeys.facilities, queryFn: getFacilities });
+
+  const handleKindChange = (value: string) => {
+    setKind(value);
+    setPage(1);
+  };
+
+  const handleProvinceChange = (value: string) => {
+    setProvinceId(value);
+    setPage(1);
+  };
+
+  const handleSortChange = (value: 'relevance' | 'trust' | 'crowd') => {
+    setSortBy(value);
+    setPage(1);
+  };
 
   return (
     <PageShell>
       <section className="container py-8 md:py-12">
         <header className="mb-6">
-          <h1 className="text-3xl font-[650] tracking-tight md:text-4xl">Explore verified places</h1>
+          <h1 className="font-serif text-3xl font-semibold tracking-tight md:text-4xl">{t('home.trendingTitle')}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Browse and filter without writing a prompt. All results carry trust and price hints.
           </p>
@@ -48,7 +73,7 @@ export default function Explore() {
             {KINDS.map((k) => (
               <button
                 key={k.id}
-                onClick={() => setKind(k.id)}
+                onClick={() => handleKindChange(k.id)}
                 className={cn(
                   'rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
                   kind === k.id ? 'bg-primary text-primary-foreground' : 'bg-surface-soft text-muted-foreground hover:text-foreground',
@@ -59,11 +84,11 @@ export default function Explore() {
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <select value={provinceId} onChange={(e) => setProvinceId(e.target.value)} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <select value={provinceId} onChange={(e) => handleProvinceChange(e.target.value)} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
               <option value="">All provinces</option>
               {provinces.data?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <select value={sortBy} onChange={(e) => handleSortChange(e.target.value as 'relevance' | 'trust' | 'crowd')} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
               <option value="trust">Sort: Trust</option>
               <option value="crowd">Sort: Quietest</option>
               <option value="relevance">Sort: Relevance</option>
@@ -87,8 +112,28 @@ export default function Explore() {
 
         <div className="mt-6">
           {view === 'list' ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {places.data?.map((p) => <PlaceCard key={p.id} place={p} />)}
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {places.data?.map((p) => <PlaceCard key={p.id} place={p} />)}
+              </div>
+              
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  disabled={page === 1 || places.isPlaceholderData}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  className="rounded-md border border-border px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-surface-soft"
+                >
+                  Previous
+                </button>
+                <span className="text-sm font-mono">Page {page}</span>
+                <button
+                  disabled={(places.data?.length ?? 0) < 6 || places.isPlaceholderData}
+                  onClick={() => setPage(p => p + 1)}
+                  className="rounded-md border border-border px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-surface-soft"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           ) : (
             <PlacesMap

@@ -2,6 +2,27 @@ import { Elysia, t } from "elysia";
 import { prisma } from "../lib/prisma";
 import { runQuery } from "../lib/neo4j";
 import { extractPreferences, generateDetourRecommendations } from "../lib/claude";
+import {
+  getMockCulturalContext,
+  getMockDataset,
+  getMockDetourCandidates,
+  getMockFairPrice,
+  getMockGraphByPlaceId,
+  getMockPlaceById,
+  isMockMode,
+  listMockPlaces,
+} from "../lib/mock-data";
+import {
+  createMockItinerary,
+  createMockReport,
+  deleteMockItinerary,
+  getMockItinerary,
+  getMockUser,
+  listMockItineraries,
+  listMockReports,
+  updateMockItinerary,
+  updateMockUser,
+} from "../lib/mock-state";
 
 type IngestJob = {
   id: string;
@@ -62,6 +83,61 @@ function estimateCurrentSeason() {
   if (month >= 3 && month <= 5) return "hot";
   if (month >= 6 && month <= 10) return "rain";
   return "cool";
+}
+
+function mapMockSeasonToCode(raw: "hot" | "rain" | "cool") {
+  if (raw === "hot") return "HOT";
+  if (raw === "rain") return "RAIN";
+  return "COOL";
+}
+
+function buildMockRouteFromItinerary(userId?: string, days = 3) {
+  if (!userId) return null;
+  const itinerary = listMockItineraries(userId, 1)[0];
+  if (!itinerary || !Array.isArray(itinerary.items) || itinerary.items.length === 0) return null;
+
+  const dataset = getMockDataset();
+  const placeById = new Map(dataset.places.map((entry) => [entry.id, entry]));
+  const grouped: Record<number, any[]> = {};
+  for (const item of itinerary.items) {
+    const day = Math.max(1, Number(item?.day || 1));
+    if (day > days) continue;
+    const placeId = String(item?.destinationId || item?.placeId || "");
+    const place = placeById.get(placeId);
+    if (!place) continue;
+    if (!grouped[day]) grouped[day] = [];
+    grouped[day].push({
+      dayIndex: day,
+      stopOrder: grouped[day].length + 1,
+      destination: {
+        id: place.destinationId || place.id,
+        name: place.name,
+        nameEn: place.nameEn || place.name,
+        province: place.province,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        trustScore: place.destination?.trustScore ?? 0.65,
+      },
+      tatPoi: {
+        id: place.id,
+        name: place.name,
+        kind: place.kind,
+        province: place.province,
+        latitude: place.latitude,
+        longitude: place.longitude,
+      },
+    });
+  }
+
+  const flat = Object.values(grouped).flat();
+  if (flat.length === 0) return null;
+  return {
+    id: `mock:route:from-itinerary:${itinerary.id}`,
+    name: itinerary.title || "My Saved Route",
+    distanceKm: 0,
+    isHighlight: true,
+    stops: flat,
+  };
 }
 
 type ChatIntentKind =
@@ -157,6 +233,9 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/discovery/places",
     async ({ query }) => {
+      if (isMockMode()) {
+        return listMockPlaces(query);
+      }
       const limit = Math.min(Number(query.limit || 20), 100);
       const page = Math.max(Number(query.page || 1), 1);
       const skip = (page - 1) * limit;
@@ -290,6 +369,36 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/discovery/places/:id",
     async ({ params }) => {
+      if (isMockMode()) {
+        const place = getMockPlaceById(params.id);
+        if (!place) return new Response("Not found", { status: 404 });
+        const fair = getMockFairPrice(place.id);
+        const cultural = getMockCulturalContext(place.id);
+        return {
+          place,
+          trustSummary: {
+            trustScore: place.destination?.trustScore ?? null,
+            crowdScore: place.destination?.crowdScore ?? null,
+            complaintCount: 0,
+          },
+          fairPriceGuidance: fair
+            ? {
+                avgMin: fair.avgMin,
+                avgMax: fair.avgMax,
+                sampleCount: fair.sampleCount,
+                currency: fair.currency,
+              }
+            : null,
+          culturalContext: cultural
+            ? {
+                context: cultural.context,
+                dos: cultural.dos,
+                donts: cultural.donts,
+                path: cultural.path ?? [],
+              }
+            : null,
+        };
+      }
       const place = await getPlaceById(params.id);
       if (!place) return new Response("Not found", { status: 404 });
 
@@ -337,6 +446,7 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
               context: destination.culturalContext,
               dos: destination.culturalDos,
               donts: destination.culturalDonts,
+              path: [],
             }
           : null,
       };
@@ -344,6 +454,13 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
     { params: t.Object({ id: t.String() }) },
   )
   .get("/discovery/provinces", async () => {
+    if (isMockMode()) {
+      const provinces = getMockDataset().provinces.map((province) => ({
+        ...province,
+        _count: { tatPois: 0, destinations: 0, accessibilityFacilities: 0 },
+      }));
+      return { provinces };
+    }
     const provinces = await prisma.province.findMany({
       select: {
         id: true,
@@ -360,6 +477,14 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/discovery/facilities",
     async ({ query }) => {
+      if (isMockMode()) {
+        const facilities = getMockDataset().facilities.filter((entry) => {
+          if (query.provinceId && entry.provinceId !== Number(query.provinceId)) return false;
+          if (query.facilityType && entry.facilityType !== query.facilityType) return false;
+          return true;
+        });
+        return { facilities: facilities.slice(0, Math.min(Number(query.limit || 200), 500)) };
+      }
       const facilities = await prisma.accessibilityFacility.findMany({
         where: {
           ...(query.provinceId && { provinceId: Number(query.provinceId) }),
@@ -378,6 +503,19 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
     },
   )
   .get("/discovery/seasons/current", async () => {
+    if (isMockMode()) {
+      const dataset = getMockDataset();
+      const season = dataset.season.current;
+      const seasonCode = mapMockSeasonToCode(season);
+      const hints = dataset.provinces
+        .slice(0, 20)
+        .map((province, index) => ({
+          seasonFitScore: Math.max(0.5, 0.9 - index * 0.02),
+          seasonCode,
+          province: { id: province.id, nameTh: province.nameTh, nameEn: province.nameEn },
+        }));
+      return { season, hints };
+    }
     const season = estimateCurrentSeason();
     const seasonCode = season === "hot" ? "HOT" : season === "rain" ? "RAIN" : "COOL";
     const hints = await prisma.provinceSeasonProfile.findMany({
@@ -423,6 +561,11 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .post(
     "/recommendations/detour",
     async ({ body }) => {
+      if (isMockMode()) {
+        const currentDestination = body.currentDestination || "Bangkok";
+        const recommendations = getMockDetourCandidates(currentDestination).slice(0, 5);
+        return { recommendations };
+      }
       let prefs;
       if (body.rawMessage) {
         prefs = await extractPreferences(body.rawMessage);
@@ -498,6 +641,23 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/trust/places/:id",
     async ({ params }) => {
+      if (isMockMode()) {
+        const place = getMockPlaceById(params.id);
+        if (!place) return new Response("Not found", { status: 404 });
+        return {
+          placeId: params.id,
+          trustScore: place.destination?.trustScore ?? null,
+          riskLabels: [
+            ...(place.status !== "approved" ? ["not-approved"] : []),
+            ...((place.destination?.trustScore || 0) < 0.65 ? ["medium-review-risk"] : []),
+          ],
+          sourceBreakdown: {
+            tatStatus: place.status || "unknown",
+            complaintSignals: 0,
+            reviewSignals: Number(place.viewerCount || 0),
+          },
+        };
+      }
       const place = await getPlaceById(params.id);
       if (!place) return new Response("Not found", { status: 404 });
       const destination = place.destinationId
@@ -525,6 +685,22 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/fair-price/places/:id",
     async ({ params }) => {
+      if (isMockMode()) {
+        const fair = getMockFairPrice(params.id);
+        return {
+          placeId: params.id,
+          baseline: fair
+            ? {
+                avgMin: fair.avgMin,
+                avgMax: fair.avgMax,
+                p25Min: fair.p25Min,
+                p75Max: fair.p75Max,
+                sampleCount: fair.sampleCount,
+                currency: fair.currency,
+              }
+            : null,
+        };
+      }
       const place = await getPlaceById(params.id);
       if (!place) return new Response("Not found", { status: 404 });
       if (!place.latitude || !place.longitude) {
@@ -564,10 +740,21 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/cultural-context/places/:id",
     async ({ params }) => {
+      if (isMockMode()) {
+        const cultural = getMockCulturalContext(params.id);
+        if (!cultural) return { placeId: params.id, context: null, dos: [], donts: [], path: [] };
+        return {
+          placeId: params.id,
+          context: cultural.context,
+          dos: cultural.dos,
+          donts: cultural.donts,
+          path: cultural.path ?? [],
+        };
+      }
       const place = await getPlaceById(params.id);
       if (!place) return new Response("Not found", { status: 404 });
       if (!place.destinationId) {
-        return { placeId: params.id, context: null, dos: [], donts: [] };
+        return { placeId: params.id, context: null, dos: [], donts: [], path: [] };
       }
       const destination = await prisma.destination.findUnique({
         where: { id: place.destinationId },
@@ -578,6 +765,7 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
         context: destination?.culturalContext ?? null,
         dos: destination?.culturalDos ?? [],
         donts: destination?.culturalDonts ?? [],
+        path: [],
       };
     },
     { params: t.Object({ id: t.String() }) },
@@ -585,6 +773,22 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .post(
     "/reports",
     async ({ body }) => {
+      if (isMockMode()) {
+        let destinationId = body.destinationId;
+        if (!destinationId && body.placeId) {
+          const place = getMockPlaceById(body.placeId);
+          destinationId = place?.destinationId || undefined;
+        }
+        const signal = createMockReport({
+          userId: body.userId,
+          destinationId,
+          category: body.category,
+          severity: body.severity,
+          source: buildUserReportSource(body.userId, body.source),
+          description: body.description,
+        });
+        return { report: signal };
+      }
       let destinationId = body.destinationId;
       if (!destinationId && body.placeId) {
         const place = await getPlaceById(body.placeId);
@@ -616,6 +820,16 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/tourist/preferences",
     async ({ query }) => {
+      if (isMockMode()) {
+        const user = getMockUser(query.userId);
+        if (!user) return new Response("User not found", { status: 404 });
+        return {
+          userId: user.id,
+          consentGiven: user.consentGiven,
+          preferences: user.preferences,
+          updatedAt: user.updatedAt,
+        };
+      }
       const user = await prisma.user.findUnique({
         where: { id: query.userId },
         select: {
@@ -642,6 +856,19 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .patch(
     "/tourist/preferences",
     async ({ body }) => {
+      if (isMockMode()) {
+        const user = updateMockUser(body.userId, {
+          consentGiven: body.consentGiven,
+          preferences: body.preferences,
+        });
+        if (!user) return new Response("User not found", { status: 404 });
+        return {
+          userId: user.id,
+          consentGiven: user.consentGiven,
+          preferences: user.preferences,
+          updatedAt: user.updatedAt,
+        };
+      }
       const existing = await prisma.user.findUnique({
         where: { id: body.userId },
         select: { id: true },
@@ -680,6 +907,16 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .post(
     "/tourist/itineraries",
     async ({ body }) => {
+      if (isMockMode()) {
+        const user = getMockUser(body.userId);
+        if (!user) return new Response("User not found", { status: 404 });
+        const itinerary = createMockItinerary({
+          userId: body.userId,
+          title: body.title,
+          items: body.items,
+        });
+        return { itinerary };
+      }
       const user = await prisma.user.findUnique({
         where: { id: body.userId },
         select: { id: true },
@@ -706,6 +943,10 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/tourist/itineraries",
     async ({ query }) => {
+      if (isMockMode()) {
+        const itineraries = listMockItineraries(query.userId, Number(query.limit || 50));
+        return { itineraries };
+      }
       const itineraries = await prisma.itinerary.findMany({
         where: { userId: query.userId },
         orderBy: { updatedAt: "desc" },
@@ -723,6 +964,14 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/tourist/itineraries/:id",
     async ({ params, query }) => {
+      if (isMockMode()) {
+        const itinerary = getMockItinerary(params.id);
+        if (!itinerary) return new Response("Not found", { status: 404 });
+        if (query.userId && itinerary.userId !== query.userId) {
+          return new Response("Forbidden", { status: 403 });
+        }
+        return { itinerary };
+      }
       const itinerary = await prisma.itinerary.findUnique({
         where: { id: params.id },
       });
@@ -740,6 +989,18 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .patch(
     "/tourist/itineraries/:id",
     async ({ params, body }) => {
+      if (isMockMode()) {
+        const existing = getMockItinerary(params.id);
+        if (!existing) return new Response("Not found", { status: 404 });
+        if (body.userId && existing.userId !== body.userId) {
+          return new Response("Forbidden", { status: 403 });
+        }
+        const itinerary = updateMockItinerary(params.id, {
+          title: body.title,
+          items: body.items,
+        });
+        return { itinerary };
+      }
       const existing = await prisma.itinerary.findUnique({
         where: { id: params.id },
         select: { id: true, userId: true },
@@ -770,6 +1031,15 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .delete(
     "/tourist/itineraries/:id",
     async ({ params, query }) => {
+      if (isMockMode()) {
+        const existing = getMockItinerary(params.id);
+        if (!existing) return new Response("Not found", { status: 404 });
+        if (query.userId && existing.userId !== query.userId) {
+          return new Response("Forbidden", { status: 403 });
+        }
+        deleteMockItinerary(params.id);
+        return { deleted: true, id: params.id };
+      }
       const existing = await prisma.itinerary.findUnique({
         where: { id: params.id },
         select: { id: true, userId: true },
@@ -791,6 +1061,13 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/tourist/reports",
     async ({ query }) => {
+      if (isMockMode()) {
+        const signals = listMockReports({
+          userId: query.userId,
+          limit: Number(query.limit || 50),
+        });
+        return { reports: signals };
+      }
       const signals = await prisma.complaintSignal.findMany({
         where: {
           source: query.userId ? `user_report:${query.userId}` : "user_report",
@@ -810,6 +1087,10 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/graph/places/:id",
     async ({ params }) => {
+      if (isMockMode()) {
+        const graph = getMockGraphByPlaceId(params.id);
+        return { nodes: graph.nodes, edges: graph.edges };
+      }
       const place = await getPlaceById(params.id);
       if (!place) return new Response("Not found", { status: 404 });
       const destination = place.destinationId
@@ -847,6 +1128,19 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
   .get(
     "/routes/smart",
     async ({ query }) => {
+      if (isMockMode()) {
+        const routes = [...getMockDataset().routes] as any[];
+        const days = Math.max(1, Math.min(Number(query.days || 1), 10));
+        const itineraryRoute = buildMockRouteFromItinerary(query.userId, days);
+        if (itineraryRoute) routes.unshift(itineraryRoute);
+        return {
+          days,
+          routes: routes.map((route: any) => ({
+            ...route,
+            stops: (route.stops || []).filter((stop: any) => !stop.dayIndex || stop.dayIndex <= days),
+          })),
+        };
+      }
       const provinceId = query.provinceId ? Number(query.provinceId) : undefined;
       const days = Math.max(1, Math.min(Number(query.days || 1), 10));
 
@@ -899,6 +1193,7 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
         provinceId: t.Optional(t.String()),
         days: t.Optional(t.String()),
         limit: t.Optional(t.String()),
+        userId: t.Optional(t.String()),
       }),
     },
   )
@@ -1011,6 +1306,43 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
       }),
     },
   )
+  .get("/mock/season/current", () => {
+    const dataset = getMockDataset();
+    return { season: dataset.season };
+  })
+  .get(
+    "/mock/places",
+    ({ query }) => {
+      return listMockPlaces(query);
+    },
+    {
+      query: t.Object({
+        kind: t.Optional(t.String()),
+        keyword: t.Optional(t.String()),
+        provinceId: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+        page: t.Optional(t.String()),
+        sortBy: t.Optional(t.String()),
+      }),
+    },
+  )
+  .get(
+    "/mock/places/:id",
+    ({ params }) => {
+      const place = getMockPlaceById(params.id);
+      if (!place) return new Response("Not found", { status: 404 });
+      return { place };
+    },
+    { params: t.Object({ id: t.String() }) },
+  )
+  .get(
+    "/mock/graph/places/:id",
+    ({ params }) => {
+      const graph = getMockGraphByPlaceId(params.id);
+      return { nodes: graph.nodes, edges: graph.edges };
+    },
+    { params: t.Object({ id: t.String() }) },
+  )
   .post("/admin/ingest/tat-sync", () => ({ job: enqueueJob("tat-sync") }))
   .post("/admin/ingest/tat-master-import", () => ({ job: enqueueJob("tat-master-import") }))
   .post("/admin/ingest/accessibility-sync", () => ({ job: enqueueJob("accessibility-sync") }))
@@ -1025,6 +1357,10 @@ export const v1Routes = new Elysia({ prefix: "/api/v1" })
     { params: t.Object({ jobId: t.String() }) },
   )
   .get("/admin/risk-flags", async () => {
+    if (isMockMode()) {
+      const complaints = listMockReports({ limit: 200 }).filter((entry) => entry.severity >= 4);
+      return { flaggedAiLogs: [], complaints };
+    }
     const [flaggedAiLogs, complaints] = await Promise.all([
       prisma.aiLog.findMany({
         where: { flagged: true },

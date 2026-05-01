@@ -15,9 +15,16 @@ export function PageShell({
       <Header />
       <main className="flex-1 relative z-10">{children}</main>
       <footer className="relative z-10 border-t border-border bg-surface-soft/60 backdrop-blur-sm">
-        <div className="container flex flex-col gap-2 py-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
+        <div className="container flex flex-col items-center gap-3 py-8 text-xs text-muted-foreground">
+          {/* Handwritten sign-off — moodboard §13 tone-of-voice */}
+          <p
+            className="font-hand text-2xl text-chili"
+            style={{ transform: "rotate(-1.5deg)" }}
+          >
+            "see you in Bangkok."
+          </p>
           <p>{t("disclaimer")}</p>
-          <p className="font-mono">AllWay MVP · v0.1</p>
+          <p className="font-mono opacity-60">AllWay · v0.1 · data from TAT</p>
         </div>
       </footer>
       <AssistantPanel currentPlaceId={currentPlaceId} />

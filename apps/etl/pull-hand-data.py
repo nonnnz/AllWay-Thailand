@@ -591,7 +591,7 @@ def run_import(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Import hand-data raw files into TripGuard PostgreSQL")
+    parser = argparse.ArgumentParser(description="Import hand-data raw files into AllWay PostgreSQL")
     parser.add_argument("--preview", action="store_true", help="Preview files without importing")
     parser.add_argument("--source-csv", default=str(DEFAULT_CSV), help="Path to tat_master.csv")
     parser.add_argument("--source-json", default=str(DEFAULT_JSON), help="Path to tat_master.json (fallback info only)")

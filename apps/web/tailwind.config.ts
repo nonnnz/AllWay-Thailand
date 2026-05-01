@@ -8,12 +8,15 @@ export default {
     container: {
       center: true,
       padding: { DEFAULT: "1rem", md: "2rem", lg: "3rem" },
-      screens: { "2xl": "1180px" },
+      screens: { "2xl": "1200px" },
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'Noto Sans Thai', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'IBM Plex Sans Thai Looped', 'Noto Sans Thai', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'Noto Serif Thai', 'serif'],
+        hand: ['Caveat', 'Bradley Hand', 'cursive'],
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        thai: ['IBM Plex Sans Thai Looped', 'Noto Sans Thai', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -39,6 +42,27 @@ export default {
         tertiary: {
           DEFAULT: "hsl(var(--tertiary))",
           foreground: "hsl(var(--tertiary-foreground))",
+        },
+        /* ── Moodboard category colors ── */
+        chili: {
+          DEFAULT: "hsl(var(--chili))",
+          soft: "hsl(var(--chili-soft))",
+        },
+        jade: {
+          DEFAULT: "hsl(var(--jade))",
+          soft: "hsl(var(--jade-soft))",
+        },
+        indigo: {
+          DEFAULT: "hsl(var(--indigo))",
+          soft: "hsl(var(--indigo-soft))",
+        },
+        lotus: {
+          DEFAULT: "hsl(var(--lotus))",
+          soft: "hsl(var(--lotus-soft))",
+        },
+        lemongrass: {
+          DEFAULT: "hsl(var(--lemongrass))",
+          soft: "hsl(var(--lemongrass-soft))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -96,8 +120,12 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        card: "18px",
-        panel: "24px",
+        card: "20px",
+        panel: "28px",
+      },
+      boxShadow: {
+        warm: "0 1px 2px rgba(31,26,20,.05), 0 2px 6px rgba(31,26,20,.04)",
+        "warm-lg": "0 8px 32px -10px rgba(31,26,20,.18), 0 4px 12px rgba(31,26,20,.06)",
       },
       keyframes: {
         "accordion-down": { from: { height: "0" }, to: { height: "var(--radix-accordion-content-height)" } },

@@ -1,4 +1,4 @@
-import { ShieldCheck, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Star, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 
@@ -12,13 +12,17 @@ export function TrustBadge({ score, size = 'md', className }: Props) {
   const t = useT();
   const pct = Math.round(score * 100);
   const tier = pct >= 80 ? 'high' : pct >= 60 ? 'medium' : 'low';
+
+  // Moodboard §12: Jade family for ≥90, plain jade-soft for 70–89, grey-jade for <70
   const styles = {
-    high: 'bg-trust-soft text-trust',
+    high: 'bg-jade-soft text-jade',
     medium: 'bg-warning-soft text-warning',
     low: 'bg-destructive-soft text-destructive',
   }[tier];
-  const Icon = tier === 'high' ? ShieldCheck : tier === 'medium' ? AlertTriangle : ShieldAlert;
+
+  const Icon = tier === 'high' ? Star : tier === 'medium' ? AlertTriangle : ShieldAlert;
   const label = tier === 'high' ? t('trust.high') : tier === 'medium' ? t('trust.medium') : t('trust.low');
+
   return (
     <span
       className={cn(

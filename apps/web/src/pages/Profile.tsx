@@ -54,15 +54,70 @@ export default function Profile() {
             e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - r.top}px`);
           }}
         >
-          <div>
-            <p className="mb-2 text-sm font-semibold">Budget</p>
-            <div className="flex gap-2">
-              {(['low', 'mid', 'high'] as const).map((b) => (
-                <button key={b} onClick={() => setPrefs({ budget: b })}
-                  className={cn('flex-1 rounded-md border py-2 text-sm font-semibold capitalize', p.budget === b ? 'border-primary bg-primary-soft text-primary' : 'border-border text-muted-foreground')}>
-                  {b}
-                </button>
-              ))}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center text-sm">
+              <p className="font-semibold">Budget Range (THB)</p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[11px] font-black text-primary bg-primary-soft/50 px-2 py-0.5 rounded border border-primary/10 tracking-tight">
+                  ฿{p.budgetRange[0].toLocaleString()} - ฿{p.budgetRange[1].toLocaleString()}
+                </span>
+              </div>
+            </div>
+            
+            <div className="relative h-8 flex items-center px-1">
+              {/* Slider Track */}
+              <div className="absolute inset-x-0 h-1.5 bg-surface-muted rounded-full" />
+              
+              {/* Active Range Highlight */}
+              <div 
+                className="absolute h-1.5 bg-primary rounded-full transition-all duration-300" 
+                style={{ 
+                  left: `${(p.budgetRange[0] / 30000) * 100}%`, 
+                  right: `${100 - (p.budgetRange[1] / 30000) * 100}%` 
+                }} 
+              />
+
+              {/* Min Range Input */}
+              <input
+                type="range" 
+                min="0" 
+                max="30000" 
+                step="500" 
+                value={p.budgetRange[0]}
+                onChange={(e) => {
+                  const val = Math.min(Number(e.target.value), p.budgetRange[1] - 1000);
+                  setPrefs({ budgetRange: [val, p.budgetRange[1]] });
+                }}
+                className="absolute inset-x-0 w-full h-full appearance-none bg-transparent cursor-pointer z-20 pointer-events-none
+                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 
+                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-background 
+                  [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-primary 
+                  [&::-webkit-slider-thumb]:shadow-lg"
+              />
+
+              {/* Max Range Input */}
+              <input
+                type="range" 
+                min="0" 
+                max="30000" 
+                step="500" 
+                value={p.budgetRange[1]}
+                onChange={(e) => {
+                  const val = Math.max(Number(e.target.value), p.budgetRange[0] + 1000);
+                  setPrefs({ budgetRange: [p.budgetRange[0], val] });
+                }}
+                className="absolute inset-x-0 w-full h-full appearance-none bg-transparent cursor-pointer z-20 pointer-events-none
+                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 
+                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-background 
+                  [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-primary 
+                  [&::-webkit-slider-thumb]:shadow-lg"
+              />
+            </div>
+            
+            <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-0.5">
+              <span>฿0</span>
+              <span>฿15k</span>
+              <span>฿30k+</span>
             </div>
           </div>
 
