@@ -1,0 +1,31 @@
+{
+  "name": "@AllWay/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "test": "bun test",
+    "test:live-db": "bun test src/routes/live-db.integration.test.ts",
+    "test:live-db:write": "bun test src/routes/live-db.write.integration.test.ts",
+    "db:generate": "bunx prisma generate",
+    "db:migrate": "bunx prisma migrate dev",
+    "db:push": "bunx prisma db push",
+    "db:studio": "bunx prisma studio"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.0",
+    "@elysiajs/bearer": "^1.1.0",
+    "@elysiajs/cors": "^1.1.0",
+    "@elysiajs/jwt": "^1.1.0",
+    "@elysiajs/swagger": "^1.1.0",
+    "@prisma/client": "^5.16.0",
+    "elysia": "^1.1.0",
+    "neo4j-driver": "^5.22.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prisma": "^7.8.0"
+  }
+}

@@ -1,0 +1,1 @@
+﻿export { partnerRoutes } from "./partners";

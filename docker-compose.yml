@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: dockerfiles/postgres.Dockerfile
+    container_name: tripguard_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tripguard
+      POSTGRES_PASSWORD: tripguard
+      POSTGRES_DB: tripguard
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/api/prisma/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+
+volumes:
+  postgres_data:

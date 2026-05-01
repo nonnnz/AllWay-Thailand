@@ -1,0 +1,489 @@
+// apps/api/prisma/schema.prisma
+// PostgreSQL via Prisma ORM
+// Run: bunx prisma db push
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users
+
+model User {
+  id              String   @id @default(cuid())
+  email           String?  @unique
+  role            UserRole @default(TRAVELER)
+  consentGiven    Boolean  @default(false)
+  preferences     Json?    // { budget, groupSize, foodPref, crowdTolerance, accessibility, etc. }
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  itineraries     Itinerary[]
+  inquiries       Inquiry[]
+  business        Business?
+
+  @@map("users")
+}
+
+enum UserRole {
+  GUEST
+  TRAVELER
+  PARTNER
+  ADMIN
+}
+
+enum ContentKind {
+  ATTRACTION
+  RESTAURANT
+  ACCOMMODATION
+  EVENT
+  ROUTE
+  ARTICLE
+  OTHER
+}
+
+enum SeasonCode {
+  HOT
+  RAIN
+  COOL
+  YEAR_ROUND
+}
+
+// Destinations and normalized travel entities
+
+model Destination {
+  id                String      @id @default(cuid())
+  name              String
+  nameEn            String
+  province          String?
+  provinceId        Int?
+  provinceRef       Province?   @relation(fields: [provinceId], references: [id])
+  district          String?
+  subdistrict       String?
+  postcode          String?
+  latitude          Float?
+  longitude         Float?
+  category          String[]    // heritage, nature, food, urban, etc.
+  vibeTags          String[]    // slow-travel, family, romantic, adventure
+  crowdScore        Float?      // 0-1, lower = less crowded
+  trustScore        Float?      // 0-1
+  localValueScore   Float?      // 0-1 (economic impact on locals)
+  fairPriceBand     Json?       // { category: { min, max, currency, areaRef, updatedAt } }
+  culturalContext   String?     // compact etiquette/payment/dietary context card
+  culturalDos       String[]    // short "do" reminders
+  culturalDonts     String[]    // short "dont" reminders
+  seasonCode        SeasonCode?
+  seasonFitScore    Float?
+  isSecondaryCity   Boolean     @default(false)
+  accessibilityScore Float?
+  tatPlaceId        String?     @unique // TAT API reference
+  migrateId         String?
+  sourceKind        ContentKind?
+  sourceUpdatedAt   DateTime?
+  shaName           String?
+  shaType           String?
+  shaCategory       String?
+  shaThumbnail      String?
+  imageUrl          String?
+  description       String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  attractions         Attraction[]
+  events              Event[]
+  packages            Package[]
+  complaints          ComplaintSignal[]
+  reviewSignals       ReviewSignal[]
+  accessibilitySignals AccessibilitySignal[]
+  routeStops          TravelRouteStop[]
+  tatPois             TatPoi[]
+
+  @@index([province])
+  @@index([provinceId])
+  @@index([isSecondaryCity])
+  @@index([seasonCode])
+  @@map("destinations")
+}
+
+model Province {
+  id                      Int      @id
+  nameTh                  String
+  nameEn                  String?
+  region                  String?
+  isSecondary             Boolean  @default(false)
+  latitude                Float?
+  longitude               Float?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  destinations            Destination[]
+  tatPois                 TatPoi[]
+  accessibilityFacilities AccessibilityFacility[]
+  seasonProfiles          ProvinceSeasonProfile[]
+  travelRoutes            TravelRoute[]
+
+  @@index([region])
+  @@index([isSecondary])
+  @@map("provinces")
+}
+
+model TatPoi {
+  id              String       @id @default(cuid())
+  kind            ContentKind
+  sourceId        String       // source row id from TAT or merged file
+  migrateId       String?
+  slug            String?
+  status          String?
+  name            String
+  nameEn          String?
+  categoryId      Int?
+  categoryName    String?
+  introduction    String?
+  latitude        Float?
+  longitude       Float?
+  address         String?
+  provinceId      Int?
+  province        Province?    @relation(fields: [provinceId], references: [id])
+  districtId      Int?
+  district        String?
+  subdistrictId   Int?
+  subdistrict     String?
+  postcode        String?
+  thumbnailUrl    String?
+  tags            String[]
+  viewerCount     Int?
+  shaName         String?
+  shaType         String?
+  shaCategory     String?
+  shaThumbnail    String?
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAtSource DateTime?
+  updatedAtSource DateTime?
+  lastSyncedAt    DateTime     @default(now())
+
+  destinationId   String?
+  destination     Destination? @relation(fields: [destinationId], references: [id])
+  routeStops      TravelRouteStop[]
+
+  @@unique([kind, sourceId])
+  @@index([provinceId])
+  @@index([migrateId])
+  @@index([updatedAtSource])
+  @@index([kind, provinceId])
+  @@map("tat_pois")
+}
+
+model AccessibilityFacility {
+  id                  String   @id @default(cuid())
+  facilityType        String   // airport, train_station, national_park, public_toilet
+  placeName           String
+  placeCategory       String?
+  provinceId          Int?
+  province            Province? @relation(fields: [provinceId], references: [id])
+  latitude            Float
+  longitude           Float
+  hasRamp             Boolean  @default(false)
+  hasWheelchairToilet Boolean  @default(false)
+  hasElevator         Boolean  @default(false)
+  hasBraille          Boolean  @default(false)
+  hasDisabledParking  Boolean  @default(false)
+  notes               String?
+  source              String   @default("manual_seed")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  destinationSignals  AccessibilitySignal[]
+
+  @@index([provinceId])
+  @@index([facilityType])
+  @@map("accessibility_facilities")
+}
+
+model AccessibilitySignal {
+  id                 String                 @id @default(cuid())
+  destinationId      String
+  destination        Destination            @relation(fields: [destinationId], references: [id])
+  facilityId         String?
+  facility           AccessibilityFacility? @relation(fields: [facilityId], references: [id])
+  accessibilityScore Float?
+  distanceKm         Float?
+  notes              String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  @@unique([destinationId, facilityId])
+  @@index([destinationId])
+  @@index([facilityId])
+  @@map("accessibility_signals")
+}
+
+model ProvinceSeasonProfile {
+  id             String     @id @default(cuid())
+  provinceId     Int
+  province       Province   @relation(fields: [provinceId], references: [id])
+  seasonCode     SeasonCode
+  seasonFitScore Float?
+  recommendation String?
+  safetyTips     String?
+  bestMonths     Int[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([provinceId, seasonCode])
+  @@index([seasonCode])
+  @@map("province_season_profiles")
+}
+
+model TravelRoute {
+  id              String    @id @default(cuid())
+  tatRouteId      String?   @unique
+  slug            String?
+  title           String
+  titleEn         String?
+  description     String?
+  provinceId      Int?
+  province        Province? @relation(fields: [provinceId], references: [id])
+  distanceKm      Float?
+  durationDays    Int?
+  isHighlight     Boolean   @default(false)
+  sourceUpdatedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  stops           TravelRouteStop[]
+
+  @@index([provinceId])
+  @@index([sourceUpdatedAt])
+  @@map("travel_routes")
+}
+
+model TravelRouteStop {
+  id            String       @id @default(cuid())
+  routeId       String
+  route         TravelRoute  @relation(fields: [routeId], references: [id])
+  destinationId String?
+  destination   Destination? @relation(fields: [destinationId], references: [id])
+  tatPoiId      String?
+  tatPoi        TatPoi?      @relation(fields: [tatPoiId], references: [id])
+  dayIndex      Int?
+  stopOrder     Int
+  note          String?
+  createdAt     DateTime     @default(now())
+
+  @@index([routeId, dayIndex, stopOrder])
+  @@index([destinationId])
+  @@index([tatPoiId])
+  @@map("travel_route_stops")
+}
+
+model Attraction {
+  id              String      @id @default(cuid())
+  name            String
+  nameEn          String?
+  destinationId   String
+  destination     Destination @relation(fields: [destinationId], references: [id])
+  category        String
+  openingHours    String?
+  contact         String?
+  latitude        Float?
+  longitude       Float?
+  tatAttractionId String?     @unique
+  source          String      @default("tat_api")
+  createdAt       DateTime    @default(now())
+
+  @@map("attractions")
+}
+
+// Business and packages
+
+model Business {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id])
+  name                 String
+  type                 String             // legacy: hotel/guide/transport/activity; rebrand: partner type
+  isCuratedPartner     Boolean            @default(false)
+  destinationId        String?
+  contact              String?
+  licenseNumber        String?
+  verificationStatus   VerificationStatus @default(PENDING_REVIEW)
+  verificationDocs     String[]           // file URLs
+  trustScore           Float?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  packages             Package[]
+  reviewSignals        ReviewSignal[]
+
+  @@map("businesses")
+}
+
+enum VerificationStatus {
+  PENDING_REVIEW
+  CURATED
+  REJECTED
+  FLAGGED
+}
+
+model Package {
+  id                 String             @id @default(cuid())
+  businessId         String
+  business           Business           @relation(fields: [businessId], references: [id])
+  destinationId      String
+  destination        Destination        @relation(fields: [destinationId], references: [id])
+  title              String
+  experienceType     String?            // e.g. market-tour, cooking-class, temple-walk
+  description        String?
+  includedServices   String[]           // van, guide, boat, lunch, etc.
+  priceMin           Float
+  priceMax           Float
+  currency           String             @default("THB")
+  languageSupported  String[]           // en, th, zh, etc.
+  accessibilityTags  String[]           // elderly-friendly, wheelchair, etc.
+  cancellationPolicy String?
+  maxGroupSize       Int?
+  durationDays       Int?
+  verificationStatus VerificationStatus @default(PENDING_REVIEW)
+  trustScore         Float?
+  imageUrls          String[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  inquiries          Inquiry[]
+  reviewSignals      ReviewSignal[]
+
+  @@map("packages")
+}
+
+// Events
+
+model Event {
+  id              String      @id @default(cuid())
+  title           String
+  titleEn         String?
+  destinationId   String
+  destination     Destination @relation(fields: [destinationId], references: [id])
+  startDate       DateTime
+  endDate         DateTime
+  category        String
+  targetAudience  String[]
+  description     String?
+  imageUrl        String?
+  tatEventId      String?     @unique
+  createdAt       DateTime    @default(now())
+
+  @@map("events")
+}
+
+model RestaurantPricePoint {
+  id               String   @id
+  name             String
+  area             String?
+  district         String?
+  locationText     String?
+  latitude         Float
+  longitude        Float
+  avgPriceText     String
+  priceMin         Float?
+  priceMax         Float?
+  currency         String   @default("THB")
+  wongnaiUrl       String?
+  googleMapsUrl    String?
+  source           String   @default("bangkok_restaurants_csv")
+  sourceExternalId String?
+  sourceRowHash    String   @unique
+  sourceFile       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([latitude, longitude])
+  @@index([district])
+  @@index([priceMin, priceMax])
+  @@index([source, sourceExternalId])
+  @@map("restaurant_price_points")
+}
+
+// Trust signals
+
+model ReviewSignal {
+  id              String       @id @default(cuid())
+  businessId      String?
+  business        Business?    @relation(fields: [businessId], references: [id])
+  destinationId   String?
+  destination     Destination? @relation(fields: [destinationId], references: [id])
+  packageId       String?
+  package         Package?     @relation(fields: [packageId], references: [id])
+  source          String       // google, tripadvisor, tat_complaint, manual, user_report
+  sentiment       Float        // -1 to 1
+  suspiciousScore Float        @default(0) // 0-1 review consistency risk
+  summary         String?
+  rawText         String?
+  createdAt       DateTime     @default(now())
+
+  @@index([businessId])
+  @@index([destinationId])
+  @@index([packageId])
+
+  @@map("review_signals")
+}
+
+model ComplaintSignal {
+  id             String       @id @default(cuid())
+  destinationId  String?
+  destination    Destination? @relation(fields: [destinationId], references: [id])
+  category       String       // scam, overcharge, unsafe, fake-product
+  severity       Int          // 1-5
+  source         String       // tat_catalog, manual, user_report
+  description    String?
+  reportedAt     DateTime     @default(now())
+
+  @@map("complaint_signals")
+}
+
+// User activity
+
+model Itinerary {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String?
+  items       Json     // [{destinationId, experienceId, date, notes}]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("itineraries")
+}
+
+model Inquiry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  packageId   String
+  package     Package  @relation(fields: [packageId], references: [id])
+  message     String?  // traveler request for curated local experience (optional flow)
+  status      String   @default("pending") // pending, replied, closed, escalated
+  createdAt   DateTime @default(now())
+
+  @@map("inquiries")
+}
+
+// AI audit log
+
+model AiLog {
+  id              String   @id @default(cuid())
+  module          String   // detour_recommendation, trust_scoring, etc.
+  inputSnapshot   Json
+  outputSnapshot  Json
+  confidence      Float?
+  sourcesUsed     String[]
+  userFeedback    Int?     // -1, 0, 1
+  flagged         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@map("ai_logs")
+}
