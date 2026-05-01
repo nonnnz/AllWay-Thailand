@@ -89,16 +89,7 @@ export function ExplainGraph({
           linkWidth={(l: { weight?: number }) => 1 + (l.weight ?? 0.5) * 1.5}
           onLinkHover={(link) => setHoveredLink(link)}
           linkCanvasObjectMode={() => "after"}
-          linkCanvasObject={(
-            link: {
-              source: { x: number; y: number };
-              target: { x: number; y: number };
-              relation?: string;
-              distanceKm?: number;
-            },
-            ctx,
-            scale,
-          ) => {
+          linkCanvasObject={(link: any, ctx, scale) => {
             const sx = link.source?.x;
             const sy = link.source?.y;
             const tx = link.target?.x;
@@ -146,11 +137,7 @@ export function ExplainGraph({
             ctx.fillText(label, mx, my + 1);
           }}
           cooldownTicks={60}
-          nodeCanvasObject={(
-            node: { group?: string; x: number; y: number; label: string },
-            ctx,
-            scale,
-          ) => {
+          nodeCanvasObject={(node: any, ctx, scale) => {
             const group = String(node.group || "").toLowerCase();
             const r = group === "place" ? 8 : 5;
             ctx.beginPath();

@@ -1219,7 +1219,7 @@ export const getCulturalContext = (
                   .map((entry: unknown) => String(entry))
                   .filter(Boolean)
               : undefined,
-      };
+      } as CulturalContextVM;
     },
     () => delay(CULTURAL_CONTEXTS[id]),
   );

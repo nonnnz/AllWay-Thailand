@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+  # ── Database ─────────────────────────────────────────────────────────────────
   postgres:
     build:
       context: .
@@ -16,6 +17,44 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./apps/api/prisma/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tripguard -d tripguard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── API (ElysiaJS / Bun) ─────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: dockerfiles/api.Dockerfile
+    container_name: tripguard_api
+    restart: unless-stopped
+    env_file:
+      - apps/api/.env
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://tripguard:tripguard@postgres:5432/tripguard
+      FRONTEND_URL: http://web:80
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Web (Vite → nginx) ───────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: dockerfiles/web.Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: tripguard_web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:
