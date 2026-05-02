@@ -53,16 +53,18 @@ AllWay is not a booking super-app. It is an **AI trust layer** that helps touris
 
 ## Web Pages Quick Table
 
-| Page File             | Route              | Purpose                                                                |
-| --------------------- | ------------------ | ---------------------------------------------------------------------- |
-| `Index.tsx`           | `/`                | Landing page with AI-style travel controls, map, and trending places   |
-| `Explore.tsx`         | `/explore`         | Filterable browse page (list/map) for places                           |
-| `Recommendations.tsx` | `/recommendations` | AI detour recommendations from user intent/vibe                        |
-| `PlaceDetail.tsx`     | `/place/:id`       | Full place detail, trust/fair-price/culture, report, save-to-itinerary |
-| `Itinerary.tsx`       | `/itinerary`       | Trip planner, calendar timeline, edit items, export calendar           |
-| `Routes.tsx`          | `/routes`          | Saved itineraries overview + AI smart routes                           |
-| `Profile.tsx`         | `/profile`         | User preferences and submitted reports history                         |
-| `AdminDashboard.tsx`  | `/admin/dashboard` | Admin tabs for risk queue, AI logs, and data jobs                      |
+| Page File | Route | Purpose |
+| --- | --- | --- |
+| [`Index.tsx`](#shot-index) | `/` | Landing page with AI-style travel controls, map, and trending places |
+| [`Explore.tsx`](#shot-explore) | `/explore` | Filterable browse page (list/map) for places |
+| [`Recommendations.tsx`](#shot-recommendations) | `/recommendations` | AI detour recommendations from user intent/vibe |
+| [`PlaceDetail.tsx`](#shot-place-detail) | `/place/:id` | Full place detail, trust/fair-price/culture, report, save-to-itinerary |
+| [`Itinerary.tsx`](#shot-itinerary) | `/itinerary` | Trip planner, calendar timeline, edit items, export calendar |
+| [`Routes.tsx`](#shot-routes) | `/routes` | Saved itineraries overview + AI smart routes |
+| [`Profile.tsx`](#shot-profile) | `/profile` | User preferences and submitted reports history |
+| [`AdminDashboard.tsx`](#shot-admin-dashboard) | `/admin/dashboard` | Admin tabs for risk queue, AI logs, and data jobs |
+| [`AdminRiskQueue.tsx`](#shot-admin-risk-queue) | `/admin/risk-queue` | Focused admin risk triage table |
+| [`NotFound.tsx`](#shot-not-found) | `*` | 404 fallback page |
 
 ---
 
@@ -160,112 +162,61 @@ See [`/docs`](./docs/) for full Specification-Driven Development docs.
 
 ## Web Pages Guide (`apps/web/src/pages`)
 
-Use this section to document each page in the web app.  
-You can replace each screenshot placeholder after you capture images.
+| Page File | Route | Purpose | Screenshot |
+| --- | --- | --- | --- |
+| `Index.tsx` | `/` | Landing page with AI controls, map, and trending places | [Jump](#shot-index) |
+| `Explore.tsx` | `/explore` | Filterable browse page with list/map views | [Jump](#shot-explore) |
+| `Recommendations.tsx` | `/recommendations` | AI detour recommendations from intent/vibe | [Jump](#shot-recommendations) |
+| `PlaceDetail.tsx` | `/place/:id` | Place details, trust, fair-price, culture, report/save actions | [Jump](#shot-place-detail) |
+| `Itinerary.tsx` | `/itinerary` | Trip planner, calendar timeline, export tools | [Jump](#shot-itinerary) |
+| `Routes.tsx` | `/routes` | Saved itineraries and AI route plans | [Jump](#shot-routes) |
+| `Profile.tsx` | `/profile` | Preferences and user report history | [Jump](#shot-profile) |
+| `AdminDashboard.tsx` | `/admin/dashboard` | Admin risk, AI logs, and data jobs dashboard | [Jump](#shot-admin-dashboard) |
+| `AdminRiskQueue.tsx` | `/admin/risk-queue` | Focused admin risk triage table | [Jump](#shot-admin-risk-queue) |
+| `NotFound.tsx` | `*` | 404 fallback page | [Jump](#shot-not-found) |
 
-### 1) `Index.tsx` (`/`)
+### Screenshot Gallery
 
-- Main landing page.
-- Combines hero messaging, AI-style travel preference controls, province filters, budget and trip settings.
-- Shows interactive map with category filters, optional pricing heatmap, place hover preview, and detail side panel.
-- Shows trending places cards at the bottom.
-
-**Screenshot Placeholder**
-
-```md
+<a id="shot-index"></a>
+#### `Index.tsx`
 ![Home Page](./docs/screenshots/web/home-index.png)
-```
 
-### 2) `Explore.tsx` (`/explore`)
-
-- Browse page for places with no prompt required.
-- Filter by place kind, province, and sort mode.
-- Supports list view (with pagination) and map view.
-
-**Screenshot Placeholder**
-
-```md
+<a id="shot-explore"></a>
+#### `Explore.tsx`
 ![Explore Page](./docs/screenshots/web/explore.png)
-```
 
-### 3) `Recommendations.tsx` (`/recommendations`)
-
-- AI recommendation results page.
-- Reads search intent and vibe from query params.
-- Calls detour recommendation API, shows rationale, place cards, and map preview.
-
-**Screenshot Placeholder**
-
-```md
+<a id="shot-recommendations"></a>
+#### `Recommendations.tsx`
 ![Recommendations Page](./docs/screenshots/web/recommendations.png)
-```
 
-### 4) `PlaceDetail.tsx` (`/place/:id`)
+<a id="shot-place-detail"></a>
+#### `PlaceDetail.tsx`
+![Place Detail 1](./docs/screenshots/web/place-detail-1.png)
+![Place Detail 2](./docs/screenshots/web/place-detail-2.png)
 
-- Deep detail page for one place.
-- Includes trust score breakdown, source signals, fair price panel, cultural context, map, and explainability graph.
-- Supports reporting issues and saving the place into itinerary with date/time slot.
-- Includes outbound links to external reviews and platform searches.
-
-**Screenshot Placeholder**
-
-```md
-![Place Detail Page](./docs/screenshots/web/place-detail-1.png)
-![Place Detail Page](./docs/screenshots/web/place-detail-2.png)
-```
-
-### 5) `Itinerary.tsx` (`/itinerary`)
-
-- Personal trip planning page.
-- Create/select trips, manage day-by-day itinerary items, drag/drop scheduling, time and duration edits, notes.
-- Calendar overview across trips.
-- Export to `.ics` and open Google Calendar event templates.
-
-**Screenshot Placeholder**
-
-```md
+<a id="shot-itinerary"></a>
+#### `Itinerary.tsx`
 ![Itinerary Page](./docs/screenshots/web/itinerary.png)
-```
 
-### 6) `Routes.tsx` (`/routes`)
-
-- Routes and trip overview page.
-- Shows saved itineraries summary with mini map previews.
-- Shows AI smart routes with day stops, trust badges, warnings, and route path map.
-
-**Screenshot Placeholder**
-
-```md
+<a id="shot-routes"></a>
+#### `Routes.tsx`
 ![Routes Page](./docs/screenshots/web/routes.png)
-```
 
-### 7) `Profile.tsx` (`/profile`)
-
-- User profile and personalization page.
-- Edit recommendation preferences (budget, vibes, crowd tolerance, accessibility, consent toggles).
-- Displays user-submitted report history.
-
-**Screenshot Placeholder**
-
-```md
+<a id="shot-profile"></a>
+#### `Profile.tsx`
 ![Profile Page](./docs/screenshots/web/profile.png)
-```
 
-### 8) `AdminDashboard.tsx` (`/admin/dashboard`)
+<a id="shot-admin-dashboard"></a>
+#### `AdminDashboard.tsx`
+![Admin Dashboard](./docs/screenshots/web/admin-dashboard.png)
 
-- Admin operations dashboard.
-- Tabbed views:
-- Risk queue (flagged places)
-  - Focused admin triage table for risk flags.
-  - Compact view of severity, reason, report count, status, and review action.
-- AI logs (trace, confidence, attribution)
-- Data jobs (pipeline/job health)
+<a id="shot-admin-risk-queue"></a>
+#### `AdminRiskQueue.tsx`
+![Admin Risk Queue](./docs/screenshots/web/admin-risk-queue.png)
 
-**Screenshot Placeholder**
-
-```md
-![Admin Dashboard](./docs/screenshots/web/admin-risk-queue.png)
-```
+<a id="shot-not-found"></a>
+#### `NotFound.tsx`
+![404 Page](./docs/screenshots/web/not-found.png)
 
 ### Screenshot Folder Convention
 
@@ -278,4 +229,5 @@ You can replace each screenshot placeholder after you capture images.
 - `itinerary.png`
 - `routes.png`
 - `profile.png`
+- `admin-dashboard.png`
 - `admin-risk-queue.png`
