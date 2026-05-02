@@ -1,8 +1,8 @@
 <h1 align="center">
   <a href="#">
     <picture>
-      <source height="160" media="(prefers-color-scheme: dark)" srcset=".apps/web/src/assets/light.png">
-      <img height="160" alt="AllWay Thailand" src=".apps/web/src/assets/light.png">
+      <source height="160" media="(prefers-color-scheme: dark)" srcset="./apps/web/src/assets/light.png">
+      <img height="160" alt="AllWay Thailand" src="./apps/web/src/assets/light.png">
     </picture>
   </a>
   <br>
