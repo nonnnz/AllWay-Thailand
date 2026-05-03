@@ -41,6 +41,11 @@ AllWay is not a booking super-app. It is an **AI trust layer** that helps touris
 
 ![AllWay Architecture](./docs/screenshots/all-way-arch-2.png)
 
+## Video Demo
+
+![AllWay Demo](./docs/screenshots/DEMO-all-way.gif)
+
+
 ## Team 5 Houses · 5 disciplines · 1 mission
 
 - **Ratchanon Buachum** (Non) - Engineering (EXP) : [@nonnnz](https://github.com/nonnnz)
